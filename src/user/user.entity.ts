@@ -1,32 +1,61 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Timestamp, BeforeInsert } from 'typeorm';
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, Timestamp, BeforeInsert, UpdateDateColumn } from 'typeorm';
 import * as bcrypt from 'bcryptjs';
 import * as jwt from 'jsonwebtoken';
 
-@Entity('user')
+@Entity('users')
 export class UserEntity{
     @PrimaryGeneratedColumn('uuid')
-    id: string;
+    user_id: string;
 
     @Column({
-        type: 'text',
+        type: 'varchar',
+        nullable: true
+    })
+    user_name: string;
+
+    @Column({
+        type: 'varchar',
         unique: true
     })
-    username: string;
+    user_email: string;
 
-    @Column('text')
-    password: string;
+    @Column('varchar')
+    user_password: string;
+
+    @Column({
+        type: 'jsonb',
+        nullable: true
+    })
+    user_extras: JSON;
+
+    @Column({
+        type: 'boolean',
+        default: false
+    })
+    user_active: boolean;
 
     @CreateDateColumn()
     created_at: Timestamp;
 
+    @UpdateDateColumn({
+        nullable: true
+    })
+    updated_at: Timestamp;
+
+    @Column({
+        type: 'timestamp',
+        nullable: true
+    })
+    deleted_at: Timestamp;
+
     @BeforeInsert()
     async hashPassword(){
-        this.password = await bcrypt.hash(this.password, 10);
+        this.user_password = await bcrypt.hash(this.user_password, 10);
     }
 
     toResponseObject(showToken: boolean = true){
-        const {id, username, created_at, token} = this;
-        const responseObject: any = {id, username, created_at};
+        const {user_id, user_name, user_email, user_extras, user_active, created_at, token} = this;
+        const responseObject: any = {user_id, user_name, user_email, user_extras, user_active, created_at};
 
         if (showToken){
             responseObject.token = token;
@@ -36,13 +65,13 @@ export class UserEntity{
     }
 
     async comparePassword(attemp: string){
-        return await bcrypt.compare(attemp, this.password);
+        return await bcrypt.compare(attemp, this.user_password);
     }
 
     private get token(){
-        const {id, username} = this;
+        const {user_id, user_name} = this;
         return jwt.sign({
-            id, username
+            user_id, user_name
         }, process.env.SECRET, {expiresIn: '1d'})
     }
 }

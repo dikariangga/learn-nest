@@ -17,10 +17,10 @@ export class UserService{
     } 
 
     async login(data: UserDTO): Promise<UserRO[]>{
-        const {username, password} = data;
-        const user = await this.userRepository.findOne({where: {username}});
+        const {user_email, user_password} = data;
+        const user = await this.userRepository.findOne({where: {user_email}});
 
-        if (!user || !(await user.comparePassword(password))){
+        if (!user || !(await user.comparePassword(user_password))){
             throw new HttpException(`Invalid username/password`, HttpStatus.BAD_REQUEST);
         }
 
@@ -28,8 +28,8 @@ export class UserService{
     }
 
     async register(data: UserDTO): Promise<UserRO[]>{
-        const {username} = data;
-        let user = await this.userRepository.findOne({where: {username}});
+        const {user_email} = data;
+        let user = await this.userRepository.findOne({where: {user_email}});
 
         if (user){
             throw new HttpException(`User already exists...`, HttpStatus.BAD_REQUEST);
@@ -38,6 +38,6 @@ export class UserService{
         user = await this.userRepository.create(data);
         await this.userRepository.save(user);
 
-        return user.toResponseObject();
+        return user.toResponseObject(false);
     }
 }

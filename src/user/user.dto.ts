@@ -1,16 +1,28 @@
-import { IsNotEmpty } from "class-validator";
+import { IsNotEmpty, IsEmail, IsLowercase } from "class-validator";
 
 export class UserDTO{
-    @IsNotEmpty()
-    username: string;
+    
+    user_name: string;
 
     @IsNotEmpty()
-    password: string;
+    @IsEmail()
+    @IsLowercase()
+    user_email: string;
+
+    @IsNotEmpty()
+    user_password: string;
+    
+    user_extras: JSON;
+
+    user_active: boolean;
 }
 
 export class UserRO{
-    id: Date;
-    username: string;
+    user_id: Date;
+    user_name: string;
+    user_email: string;
+    user_extras: JSON;
+    user_active: boolean;
     created_at: Date;
     token?: string;
 }
