@@ -13,17 +13,27 @@ export class IdeaService {
     ) {}
 
     async showAll(){
+        const now = Date.now();
+        
         try{
             const data = await this.ideaRepository.find();
-
-            Logger.log(`Show all data unsuccessfully...`, `Log CRUD`);
-            return {
-                success: true,
-                message: `Show all data successfully...`,
-                data: data
+            if (data.length > 0) {
+                Logger.log(`Show all data successfully... ${Date.now() - now}ms`, `IdeaService`);
+                return {
+                    success: true,
+                    message: `Show all data successfully...`,
+                    data: data
+                }
+            } else {
+                Logger.error(`Show all data unsuccessfully... ${Date.now() - now}ms`,`Error : Data not found (empty)... `, `IdeaService`);
+                return {
+                    success: false,
+                    message: `Data not found (empty)...`,
+                    data: null
+                }
             }
         }catch(e){
-            Logger.log(`Show all data unsuccessfully...\nError : ${e}`, `Log CRUD`);
+            Logger.error(`Show all data unsuccessfully... ${Date.now() - now}ms`,`Error : ${e}`, `IdeaService`);
             return {
                 success: false,
                 message: `Show all data unsuccessfully...`,
@@ -33,18 +43,20 @@ export class IdeaService {
     }
 
     async create(data: IdeaDTO){
+        const now = Date.now();
+        
         try{
             const idea = await this.ideaRepository.create(data);
             const result = await this.ideaRepository.save(idea);
 
-            Logger.log(`Create data successfully...`, `Log CRUD`);
+            Logger.log(`Create data successfully... ${Date.now() - now}ms`, `IdeaService`);
             return {
                 success: true,
                 message: `Create data successfully...`,
                 data: result
             }
         }catch(e){
-            Logger.log(`Create data unsuccessfully...\nError : ${e}`, `Log CRUD`);
+            Logger.error(`Create data unsuccessfully... ${Date.now() - now}ms`, `Error : ${e}`, `IdeaService`);
             return {
                 success: false,
                 message: `Create data unsuccessfully...`,
@@ -54,25 +66,28 @@ export class IdeaService {
     }
 
     async read(id: string){
+        const now = Date.now();
+        
         try{
-            const data = await this.ideaRepository.query(`SELECT * FROM idea WHERE id = '`+id+`'`);
+            const data = await this.ideaRepository.findOne({id});
+            // return data;
 
-            if(data.length > 0){
-                Logger.log(`Show data id : ${id} successfully...`, `Log CRUD`);
+            if(data){
+                Logger.log(`Show data id : ${id} successfully... ${Date.now() - now}ms`, `IdeaService`);
                 return {
                     success: true,
                     message: `Show data id : ${id} successfully...`,
                     data: data
                 }
             } else {
-                Logger.log(`Show data id : ${id} not found...`, `Log CRUD`);
+                Logger.error(`Show data unsuccessfully... ${Date.now() - now}ms`, `ID : ${id} doesn't exist...`, `IdeaService`);
                 return {
                     success: false,
-                    message: `Show data id : ${id} not found...`
+                    message: `Show data unsuccessfully, id : ${id} doesn't exist...`
                 }
             }
         }catch(e){
-            Logger.log(`Show data id : ${id} unsuccessfully...\nError : ${e}`, `Log CRUD`);
+            Logger.error(`Show data id : ${id} unsuccessfully... ${Date.now() - now}ms`, `Error : ${e}`, `IdeaService`);
             return {
                 success: false,
                 message: `Show data id : ${id} unsuccessfully...`,
@@ -82,18 +97,30 @@ export class IdeaService {
     }
 
     async update(id: string, data: Partial<IdeaDTO>){
+        const now = Date.now();
+        
         try{
-            await this.ideaRepository.update({id}, data);
-            const update = await this.ideaRepository.findOne({id});
-            
-            Logger.log(`Update data id : ${id} successfully...`, `Log CRUD`);
-            return {
-                success: true,
-                message: `Update data id : ${id} successfully...`,
-                data: update
+            const cek = await this.ideaRepository.findOne({id});
+            if (cek) {
+                await this.ideaRepository.update({id}, data);
+                const update = await this.ideaRepository.findOne({id});
+                
+                Logger.log(`Update data id : ${id} successfully... ${Date.now() - now}ms`, `IdeaService`);
+                return {
+                    success: true,
+                    message: `Update data id : ${id} successfully...`,
+                    data: update
+                }
+            } else {
+                Logger.error(`Update data id : ${id} unsuccessfully... ${Date.now() - now}ms`, `Error : ID '${id}' not found...`, `IdeaService`);
+                return {
+                    success: false,
+                    message: `Update data id : ${id} successfully...`,
+                    data: null
+                }
             }
         }catch(e){
-            Logger.log(`Update data id : ${id} unsuccessfully...\nError : ${e}`, `Log CRUD`);
+            Logger.error(`Update data id : ${id} unsuccessfully... ${Date.now() - now}ms`, `Error : ${e}`, `IdeaService`);
             return {
                 success: false,
                 message: `Update data id : ${id} unsuccessfully...`,
@@ -103,16 +130,28 @@ export class IdeaService {
     }
 
     async destroy(id: string){
+        const now = Date.now();
+
         try{
-            await this.ideaRepository.delete({id});
+            const cek = await this.ideaRepository.query(`SELECT COUNT(id) FROM idea WHERE id = '`+id+`'`);
+
+            if (cek[0].count > 0) {
+                await this.ideaRepository.delete({id});
             
-            Logger.log(`Delete data id : ${id} successfully...`, `Log CRUD`);
-            return {
-                success: true,
-                message: `Delete data id : ${id} successfully...`
+                Logger.log(`Delete data id : ${id} successfully... ${Date.now() - now}ms`, `IdeaService`);
+                return {
+                    success: true,
+                    message: `Delete data id : ${id} successfully...`
+                }
+            } else {
+                Logger.error(`Delete data unsuccessfully... ${Date.now() - now}ms`, `ID : ${id} doesn't exist...`, `IdeaService`);
+                return {
+                    success: false,
+                    message: `Delete data unsuccessfully, id : ${id} doesn't exist...`
+                }
             }
         }catch(e){
-            Logger.log(`Delete data id : ${id} unsuccessfully...\nError : ${e}`, `Log CRUD`);
+            Logger.error(`Delete data id : ${id} unsuccessfully... ${Date.now() - now}ms`, `Error : ${e}`, `IdeaService`);
             return {
                 success: false,
                 message: `Delete data id : ${id} unsuccessfully...`,
